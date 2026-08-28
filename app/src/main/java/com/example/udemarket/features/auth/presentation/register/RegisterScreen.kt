@@ -29,7 +29,8 @@ import com.example.udemarket.ui.theme.UdeMarketTheme
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel = viewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onRegisterSuccess: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
@@ -84,7 +85,7 @@ fun RegisterScreen(
             )
             
             Text(
-                text = "Únete al Marketplace de la UdeA",
+                text = "Únete a la comunidad SENA @misena",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.5f)
             )
@@ -125,7 +126,7 @@ fun RegisterScreen(
                     RegisterField(
                         value = uiState.email,
                         onValueChange = viewModel::onEmailChanged,
-                        label = "Correo Institucional",
+                        label = "Correo @misena.edu.co",
                         icon = Icons.Default.Email,
                         neonPurple = neonPurple,
                         keyboardType = KeyboardType.Email,
@@ -137,7 +138,7 @@ fun RegisterScreen(
                     RegisterField(
                         value = uiState.career,
                         onValueChange = viewModel::onCareerChanged,
-                        label = "Carrera (Opcional)",
+                        label = "Programa de Formación",
                         icon = Icons.Default.School,
                         neonPurple = neonPurple
                     )
@@ -153,6 +154,12 @@ fun RegisterScreen(
                             val icon = if (uiState.isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                             IconButton(onClick = viewModel::togglePasswordVisibility) {
                                 Icon(icon, null, tint = Color.White.copy(alpha = 0.6f))
+                            }
+                        },
+                        isError = uiState.isPasswordError,
+                        supportingText = {
+                            if (uiState.isPasswordError) {
+                                Text(uiState.passwordErrorMessage ?: "", color = MaterialTheme.colorScheme.error)
                             }
                         },
                         visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -171,9 +178,19 @@ fun RegisterScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Mensaje de error general de Firebase
+                    if (uiState.errorMessage != null) {
+                        Text(
+                            text = uiState.errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
                     // Botón de Registro
                     Button(
-                        onClick = viewModel::register,
+                        onClick = { viewModel.register(onRegisterSuccess) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(58.dp),
@@ -250,12 +267,4 @@ fun RegisterField(
             unfocusedTextColor = Color.White
         )
     )
-}
-
-@Preview(showBackground = true, device = "id:pixel_7")
-@Composable
-fun RegisterScreenPreview() {
-    UdeMarketTheme {
-        RegisterScreen()
-    }
 }
