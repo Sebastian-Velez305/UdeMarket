@@ -6,7 +6,7 @@
 
 ---
 
-## 🚀 Arquitectura y Tecnologías
+## Arquitectura y Tecnologías
 
 El proyecto sigue los principios de **Clean Architecture** y una organización **MVVM**, garantizando escalabilidad y modularidad.
 
@@ -19,7 +19,7 @@ El proyecto sigue los principios de **Clean Architecture** y una organización *
 
 ---
 
-## 📂 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```text
 com.example.udemarket/
@@ -36,22 +36,22 @@ com.example.udemarket/
 
 ---
 
-## 🛠️ Implementaciones Recientes
+##  Implementaciones Recientes
 
-### 🔥 Integración de Firebase
+###  Integración de Firebase
 - [x] **Firebase Auth:** Autenticación robusta con validación obligatoria de dominio institucional `@misena.edu.co`.
 - [x] **Cloud Firestore:** Base de datos en tiempo real para el directorio de comidas y marketplace.
 - [x] **Firebase Storage:** Almacenamiento de imágenes para productos del marketplace.
 
-### 🏗️ Capa de Repositorios
+###  Capa de Repositorios
 - [x] **AuthRepository:** Gestión de sesiones, registro de perfiles y verificación de correo.
 - [x] **FoodRepository:** Flujos de datos (`Flow`) para actualizaciones en vivo de locales abiertos/cerrados.
 - [x] **MarketplaceRepository:** Lógica de publicación de artículos con subida de multimedia.
 
-### 🎨 UI & UX
+### UI & UX
 - [x] **Login Neón:** Interfaz optimizada con validación en tiempo real y feedback visual.
 - [x] **Food Dashboard:** Lista dinámica de tiendas con carga de imágenes mediante Coil.
 
 ---
 
-**Desarrollado con ❤️ para la comunidad de aprendices SENA.**
+

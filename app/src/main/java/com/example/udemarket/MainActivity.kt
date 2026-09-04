@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.*
@@ -22,20 +22,17 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.udemarket.core.navigation.Screen
 import com.example.udemarket.data.repository.AuthRepositoryImpl
-import com.example.udemarket.data.repository.FoodRepositoryImpl
-import com.example.udemarket.data.repository.MarketplaceRepositoryImpl
 import com.example.udemarket.features.auth.presentation.login.LoginScreen
 import com.example.udemarket.features.auth.presentation.login.LoginViewModel
 import com.example.udemarket.features.auth.presentation.register.RegisterScreen
 import com.example.udemarket.features.auth.presentation.register.RegisterViewModel
 import com.example.udemarket.features.food.presentation.FoodScreenContainer
-import com.example.udemarket.features.food.presentation.FoodViewModel
 import com.example.udemarket.features.marketplace.presentation.MarketplaceScreenContainer
-import com.example.udemarket.features.marketplace.presentation.MarketplaceViewModel
+import com.example.udemarket.features.profile.presentation.ProfileScreen
+import com.example.udemarket.features.profile.presentation.ProfileViewModel
 import com.example.udemarket.ui.theme.UdeMarketTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,15 +41,11 @@ class MainActivity : ComponentActivity() {
 
         val auth = FirebaseAuth.getInstance()
         val db = FirebaseFirestore.getInstance()
-        val storage = FirebaseStorage.getInstance()
-
         val authRepository = AuthRepositoryImpl(auth, db)
-        val foodRepository = FoodRepositoryImpl(db)
-        val marketplaceRepository = MarketplaceRepositoryImpl(db, storage)
 
         setContent {
             UdeMarketTheme {
-                UdeMarketApp(auth, authRepository, foodRepository, marketplaceRepository)
+                UdeMarketApp(auth, authRepository)
             }
         }
     }
@@ -61,15 +54,12 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun UdeMarketApp(
     auth: FirebaseAuth,
-    authRepository: AuthRepositoryImpl,
-    foodRepository: FoodRepositoryImpl,
-    marketplaceRepository: MarketplaceRepositoryImpl
+    authRepository: AuthRepositoryImpl
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // PERSISTENCIA: Si ya hay sesión, inicia en FoodList, si no en Login
     val startDestination = remember {
         if (auth.currentUser != null) Screen.FoodList.route else Screen.Login.route
     }
@@ -77,14 +67,17 @@ fun UdeMarketApp(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            // Solo mostramos la barra si no estamos en Login o Registro
             if (currentRoute != Screen.Login.route && currentRoute != Screen.Register.route) {
                 NavigationBar(containerColor = Color(0xFF0F001A)) {
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.Fastfood, null) },
                         label = { Text("Comida") },
                         selected = currentRoute == Screen.FoodList.route,
-                        onClick = { navController.navigate(Screen.FoodList.route) }
+                        onClick = { 
+                            navController.navigate(Screen.FoodList.route) {
+                                popUpTo(Screen.FoodList.route) { inclusive = true }
+                            }
+                        }
                     )
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.Storefront, null) },
@@ -93,15 +86,10 @@ fun UdeMarketApp(
                         onClick = { navController.navigate(Screen.MarketplaceItems.route) }
                     )
                     NavigationBarItem(
-                        icon = { Icon(Icons.Default.ExitToApp, null, tint = Color.Red) },
-                        label = { Text("Salir", color = Color.Red) },
-                        selected = false,
-                        onClick = {
-                            auth.signOut()
-                            navController.navigate(Screen.Login.route) {
-                                popUpTo(0) { inclusive = true }
-                            }
-                        }
+                        icon = { Icon(Icons.Default.AccountCircle, null) },
+                        label = { Text("Perfil") },
+                        selected = currentRoute == Screen.Profile.route,
+                        onClick = { navController.navigate(Screen.Profile.route) }
                     )
                 }
             }
@@ -135,10 +123,20 @@ fun UdeMarketApp(
                 )
             }
             composable(Screen.FoodList.route) {
-                FoodScreenContainer(viewModel = viewModel(factory = createFactory { FoodViewModel(foodRepository) }))
+                FoodScreenContainer(viewModel = viewModel())
             }
             composable(Screen.MarketplaceItems.route) {
-                MarketplaceScreenContainer(viewModel = viewModel(factory = createFactory { MarketplaceViewModel(marketplaceRepository) }))
+                MarketplaceScreenContainer(viewModel = viewModel())
+            }
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    viewModel = viewModel(factory = createFactory { ProfileViewModel(authRepository) }),
+                    onLogoutSuccess = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
             }
         }
     }
