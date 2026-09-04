@@ -8,6 +8,7 @@ data class RegisterUiState(
     val emailErrorMessage: String? = null,
     val career: String = "",
     val password: String = "",
+    val confirmPassword: String = "",
     val isPasswordError: Boolean = false,
     val passwordErrorMessage: String? = null,
     val isPasswordVisible: Boolean = false,

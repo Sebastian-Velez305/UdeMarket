@@ -20,7 +20,7 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
         _uiState.update { 
             it.copy(
                 name = name,
-                isRegisterEnabled = validateForm(name, it.phone, it.email, it.password)
+                isRegisterEnabled = validateForm(name, it.phone, it.email, it.password, it.confirmPassword)
             )
         }
     }
@@ -29,7 +29,7 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
         _uiState.update { 
             it.copy(
                 phone = phone,
-                isRegisterEnabled = validateForm(it.name, phone, it.email, it.password)
+                isRegisterEnabled = validateForm(it.name, phone, it.email, it.password, it.confirmPassword)
             )
         }
     }
@@ -41,7 +41,7 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
                 email = email,
                 isEmailError = isError,
                 emailErrorMessage = if (isError) "Acceso restringido únicamente para aprendices SENA con correo @misena.edu.co" else null,
-                isRegisterEnabled = validateForm(it.name, it.phone, email, it.password)
+                isRegisterEnabled = validateForm(it.name, it.phone, email, it.password, it.confirmPassword)
             )
         }
     }
@@ -57,7 +57,16 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
                 password = password,
                 isPasswordError = isError,
                 passwordErrorMessage = if (isError) "La contraseña debe tener al menos 6 caracteres" else null,
-                isRegisterEnabled = validateForm(it.name, it.phone, it.email, password)
+                isRegisterEnabled = validateForm(it.name, it.phone, it.email, password, it.confirmPassword)
+            )
+        }
+    }
+
+    fun onConfirmPasswordChanged(password: String) {
+        _uiState.update {
+            it.copy(
+                confirmPassword = password,
+                isRegisterEnabled = validateForm(it.name, it.phone, it.email, it.password, password)
             )
         }
     }
@@ -68,11 +77,12 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    private fun validateForm(name: String, phone: String, email: String, password: String): Boolean {
+    private fun validateForm(name: String, phone: String, email: String, password: String, confirm: String): Boolean {
         return name.isNotBlank() && 
                phone.isNotBlank() && 
                email.endsWith("@misena.edu.co") && 
-               password.length >= 6
+               password.length >= 6 &&
+               password == confirm
     }
 
     fun register(onSuccess: () -> Unit) {
@@ -84,7 +94,7 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
         )
         
         viewModelScope.launch {
-            repository.signUp(_uiState.value.email, _uiState.value.password, user).collect { result ->
+            repository.signUp(_uiState.value.email, _uiState.value.password, user, _uiState.value.phone).collect { result ->
                 when (result) {
                     is ResultState.Loading -> {
                         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
