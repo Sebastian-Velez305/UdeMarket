@@ -20,11 +20,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.udemarket.ui.theme.UdeMarketTheme
 
 @Composable
 fun RegisterScreen(
@@ -134,7 +132,7 @@ fun RegisterScreen(
                         errorMessage = uiState.emailErrorMessage
                     )
 
-                    // Carrera (Opcional)
+                    // Carrera
                     RegisterField(
                         value = uiState.career,
                         onValueChange = viewModel::onCareerChanged,
@@ -162,6 +160,27 @@ fun RegisterScreen(
                                 Text(uiState.passwordErrorMessage ?: "", color = MaterialTheme.colorScheme.error)
                             }
                         },
+                        visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = neonPurple,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                            focusedLabelColor = neonPurple,
+                            cursorColor = neonPurple,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        )
+                    )
+
+                    // Confirmar Contraseña
+                    OutlinedTextField(
+                        value = uiState.confirmPassword,
+                        onValueChange = viewModel::onConfirmPasswordChanged,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Confirmar Contraseña") },
+                        leadingIcon = { Icon(Icons.Default.LockReset, null, tint = neonPurple) },
                         visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                         singleLine = true,

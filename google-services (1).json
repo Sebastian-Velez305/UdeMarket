@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "655659132343",
+    "project_id": "udemarket-54de4",
+    "storage_bucket": "udemarket-54de4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:655659132343:android:925ea8c5ae72185fa87432",
+        "android_client_info": {
+          "package_name": "com.example.udemarket"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgtQrFu7PB0Z1KrWWx6ujK6hScNMrIYTg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

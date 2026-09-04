@@ -21,11 +21,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.udemarket.ui.theme.UdeMarketTheme
 
 @Composable
 fun LoginScreen(
@@ -34,11 +32,9 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
-    // Colores personalizados para el gradiente y efectos
     val deepPurple = Color(0xFF0F001A)
     val neonPurple = MaterialTheme.colorScheme.primary
 
-    // Gradiente de fondo dinámico
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(Color.Black, deepPurple, Color.Black)
     )
@@ -55,7 +51,7 @@ fun LoginScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header con Icono Estilizado
+            // Header
             Box(
                 modifier = Modifier
                     .size(90.dp)
@@ -91,7 +87,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Formulario con efecto Glassmorphism
+            // Formulario
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = Color.White.copy(alpha = 0.05f),
@@ -109,7 +105,6 @@ fun LoginScreen(
                         fontWeight = FontWeight.Bold
                     )
 
-                    // Campo de Correo
                     OutlinedTextField(
                         value = uiState.email,
                         onValueChange = viewModel::onEmailChanged,
@@ -122,23 +117,17 @@ fun LoginScreen(
                                 Text(uiState.emailErrorMessage ?: "", color = MaterialTheme.colorScheme.error)
                             }
                         },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Email,
-                            imeAction = ImeAction.Next
-                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = neonPurple,
                             unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                            focusedLabelColor = neonPurple,
-                            cursorColor = neonPurple,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         )
                     )
 
-                    // Campo de Contraseña
                     OutlinedTextField(
                         value = uiState.password,
                         onValueChange = viewModel::onPasswordChanged,
@@ -152,25 +141,28 @@ fun LoginScreen(
                             }
                         },
                         visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Done
-                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = neonPurple,
                             unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                            focusedLabelColor = neonPurple,
-                            cursorColor = neonPurple,
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White
                         )
                     )
 
+                    // Mensaje de error general (Contraseña incorrecta, etc)
+                    if (uiState.errorMessage != null) {
+                        Text(
+                            text = uiState.errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Botón Morado Neón
                     Button(
                         onClick = viewModel::login,
                         modifier = Modifier
@@ -178,19 +170,12 @@ fun LoginScreen(
                             .height(58.dp),
                         enabled = uiState.isLoginEnabled && !uiState.isLoading,
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = neonPurple,
-                            contentColor = Color.Black // Contraste alto
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                        colors = ButtonDefaults.buttonColors(containerColor = neonPurple, contentColor = Color.Black)
                     ) {
                         if (uiState.isLoading) {
                             CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(24.dp))
                         } else {
-                            Text(
-                                "INGRESAR",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold)
-                            )
+                            Text("INGRESAR", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold))
                         }
                     }
                 }
@@ -198,7 +183,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Footer
             TextButton(onClick = onNavigateToRegister) {
                 Row {
                     Text("¿Eres nuevo? ", color = Color.White.copy(alpha = 0.6f))
