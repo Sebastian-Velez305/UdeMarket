@@ -40,106 +40,43 @@ fun RegisterScreen(
     )
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush),
+        modifier = Modifier.fillMaxSize().background(backgroundBrush),
         contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Header Estilizado
+            // Header
             Box(
-                modifier = Modifier
-                    .size(70.dp)
+                modifier = Modifier.size(70.dp)
                     .background(neonPurple.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
                     .border(1.dp, neonPurple.copy(alpha = 0.3f), RoundedCornerShape(20.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "U",
-                    style = MaterialTheme.typography.displaySmall.copy(
-                        color = neonPurple,
-                        fontWeight = FontWeight.Black
-                    )
-                )
+                Text("U", style = MaterialTheme.typography.displaySmall.copy(color = neonPurple, fontWeight = FontWeight.Black))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Crea tu cuenta",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
-                    letterSpacing = 1.sp
-                )
-            )
-            
-            Text(
-                text = "Únete a la comunidad SENA @misena",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.5f)
-            )
+            Text("Crea tu cuenta", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold, color = Color.White, letterSpacing = 1.sp))
+            Text("Únete a la comunidad SENA @misena", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.5f))
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Formulario Glassmorphism
+            // Formulario
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = Color.White.copy(alpha = 0.05f),
                 shape = RoundedCornerShape(32.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Nombre Completo
-                    RegisterField(
-                        value = uiState.name,
-                        onValueChange = viewModel::onNameChanged,
-                        label = "Nombre Completo",
-                        icon = Icons.Default.Person,
-                        neonPurple = neonPurple
-                    )
-
-                    // Celular
-                    RegisterField(
-                        value = uiState.phone,
-                        onValueChange = viewModel::onPhoneChanged,
-                        label = "Número de Celular",
-                        icon = Icons.Default.Phone,
-                        neonPurple = neonPurple,
-                        keyboardType = KeyboardType.Phone
-                    )
-
-                    // Correo Institucional
-                    RegisterField(
-                        value = uiState.email,
-                        onValueChange = viewModel::onEmailChanged,
-                        label = "Correo @misena.edu.co",
-                        icon = Icons.Default.Email,
-                        neonPurple = neonPurple,
-                        keyboardType = KeyboardType.Email,
-                        isError = uiState.isEmailError,
-                        errorMessage = uiState.emailErrorMessage
-                    )
-
-                    // Carrera
-                    RegisterField(
-                        value = uiState.career,
-                        onValueChange = viewModel::onCareerChanged,
-                        label = "Programa de Formación",
-                        icon = Icons.Default.School,
-                        neonPurple = neonPurple
-                    )
+                Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    RegisterField(value = uiState.name, onValueChange = viewModel::onNameChanged, label = "Nombre Completo", icon = Icons.Default.Person, neonPurple = neonPurple)
+                    RegisterField(value = uiState.phone, onValueChange = viewModel::onPhoneChanged, label = "Número de Celular", icon = Icons.Default.Phone, neonPurple = neonPurple, keyboardType = KeyboardType.Phone)
+                    RegisterField(value = uiState.email, onValueChange = viewModel::onEmailChanged, label = "Correo @misena.edu.co", icon = Icons.Default.Email, neonPurple = neonPurple, keyboardType = KeyboardType.Email, isError = uiState.isEmailError, errorMessage = uiState.emailErrorMessage)
+                    RegisterField(value = uiState.career, onValueChange = viewModel::onCareerChanged, label = "Programa de Formación", icon = Icons.Default.School, neonPurple = neonPurple)
 
                     // Contraseña
                     OutlinedTextField(
@@ -148,30 +85,13 @@ fun RegisterScreen(
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Contraseña") },
                         leadingIcon = { Icon(Icons.Default.Lock, null, tint = neonPurple) },
-                        trailingIcon = {
-                            val icon = if (uiState.isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                            IconButton(onClick = viewModel::togglePasswordVisibility) {
-                                Icon(icon, null, tint = Color.White.copy(alpha = 0.6f))
-                            }
-                        },
                         isError = uiState.isPasswordError,
-                        supportingText = {
-                            if (uiState.isPasswordError) {
-                                Text(uiState.passwordErrorMessage ?: "", color = MaterialTheme.colorScheme.error)
-                            }
-                        },
+                        supportingText = { if (uiState.isPasswordError) Text(uiState.passwordErrorMessage ?: "", color = MaterialTheme.colorScheme.error) },
                         visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = neonPurple,
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                            focusedLabelColor = neonPurple,
-                            cursorColor = neonPurple,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        )
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = neonPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f), focusedTextColor = Color.White, unfocusedTextColor = Color.White)
                     )
 
                     // Confirmar Contraseña
@@ -185,105 +105,60 @@ fun RegisterScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = neonPurple,
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                            focusedLabelColor = neonPurple,
-                            cursorColor = neonPurple,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        )
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = neonPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f), focusedTextColor = Color.White, unfocusedTextColor = Color.White)
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Mensaje de error general de Firebase
-                    if (uiState.errorMessage != null) {
-                        Text(
-                            text = uiState.errorMessage!!,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
+                    // Mensaje dinámico de "Qué te hace falta"
+                    if (!uiState.isRegisterEnabled && !uiState.isLoading && uiState.password.isNotEmpty()) {
+                        val helpMessage = when {
+                            uiState.name.isBlank() -> "Escribe tu nombre"
+                            uiState.phone.length < 7 -> "Celular incompleto"
+                            !uiState.email.endsWith("@misena.edu.co") -> "Usa correo @misena"
+                            uiState.password.length < 6 -> "Clave muy corta (mín. 6)"
+                            uiState.password != uiState.confirmPassword -> "Las contraseñas no coinciden"
+                            else -> "Completa todos los campos"
+                        }
+                        Text(text = "Falta: $helpMessage", color = neonPurple.copy(alpha = 0.7f), style = MaterialTheme.typography.bodySmall)
                     }
 
-                    // Botón de Registro
+                    // Error de Firebase
+                    if (uiState.errorMessage != null) {
+                        Text(text = uiState.errorMessage!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+
                     Button(
                         onClick = { viewModel.register(onRegisterSuccess) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(58.dp),
+                        modifier = Modifier.fillMaxWidth().height(58.dp),
                         enabled = uiState.isRegisterEnabled && !uiState.isLoading,
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = neonPurple,
-                            contentColor = Color.Black
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                        colors = ButtonDefaults.buttonColors(containerColor = neonPurple, contentColor = Color.Black)
                     ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(24.dp))
-                        } else {
-                            Text(
-                                "REGISTRARME",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold)
-                            )
-                        }
+                        if (uiState.isLoading) CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(24.dp))
+                        else Text("REGISTRARME", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold))
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Footer
             TextButton(onClick = onNavigateBack) {
                 Row {
                     Text("¿Ya tienes cuenta? ", color = Color.White.copy(alpha = 0.6f))
                     Text("Inicia sesión", color = neonPurple, fontWeight = FontWeight.Bold)
                 }
             }
-            
             Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }
 
 @Composable
-fun RegisterField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    neonPurple: Color,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    isError: Boolean = false,
-    errorMessage: String? = null
-) {
+fun RegisterField(value: String, onValueChange: (String) -> Unit, label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, neonPurple: Color, keyboardType: KeyboardType = KeyboardType.Text, isError: Boolean = false, errorMessage: String? = null) {
     OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text(label) },
-        leadingIcon = { Icon(icon, null, tint = neonPurple) },
-        isError = isError,
-        supportingText = {
-            if (isError) {
-                Text(errorMessage ?: "", color = MaterialTheme.colorScheme.error)
-            }
-        },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType,
-            imeAction = ImeAction.Next
-        ),
-        singleLine = true,
-        shape = RoundedCornerShape(16.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = neonPurple,
-            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-            focusedLabelColor = neonPurple,
-            cursorColor = neonPurple,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White
-        )
+        value = value, onValueChange = onValueChange, modifier = Modifier.fillMaxWidth(), label = { Text(label) },
+        leadingIcon = { Icon(icon, null, tint = neonPurple) }, isError = isError,
+        supportingText = { if (isError) Text(errorMessage ?: "", color = MaterialTheme.colorScheme.error) },
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Next),
+        singleLine = true, shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = neonPurple, unfocusedBorderColor = Color.White.copy(alpha = 0.2f), focusedTextColor = Color.White, unfocusedTextColor = Color.White)
     )
 }

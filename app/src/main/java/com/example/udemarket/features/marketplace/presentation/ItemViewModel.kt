@@ -1,27 +1,28 @@
-
-
 package com.example.udemarket.features.marketplace.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.udemarket.core.data.api.RetrofitClient
-import com.example.udemarket.core.data.model.Item
-import com.example.udemarket.core.data.repository.ItemRepository
+import com.example.udemarket.core.ResultState
+import com.example.udemarket.data.model.MarketplaceItem
+import com.example.udemarket.data.repository.MarketplaceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ItemViewModel : ViewModel() {
-    private val repository = ItemRepository(RetrofitClient.apiService)
+data class ItemUpsertUiState(
+    val item: MarketplaceItem? = null,
+    val items: List<MarketplaceItem> = emptyList(),
+    val isLoading: Boolean = false,
+    val isSaved: Boolean = false,
+    val errorMessage: String? = null
+)
 
-    private val _items = MutableStateFlow<List<Item>>(emptyList())
-    val items: StateFlow<List<Item>> = _items
+class ItemViewModel(private val repository: MarketplaceRepository) : ViewModel() {
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    private val _uiState = MutableStateFlow(ItemUpsertUiState())
+    val uiState = _uiState.asStateFlow()
 
     init {
         fetchItems()
@@ -29,47 +30,67 @@ class ItemViewModel : ViewModel() {
 
     fun fetchItems() {
         viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                _items.value = repository.getItems()
-                _error.value = null
-            } catch (e: Exception) {
-                _error.value = e.message
-            } finally {
-                _isLoading.value = false
+            repository.getMarketplaceItems().collect { result ->
+                when (result) {
+                    is ResultState.Loading -> _uiState.update { it.copy(isLoading = true) }
+                    is ResultState.Success -> _uiState.update { it.copy(isLoading = false, items = result.data) }
+                    is ResultState.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+                }
             }
         }
     }
 
-    fun addItem(name: String, description: String) {
+    fun loadItem(itemId: String) {
         viewModelScope.launch {
-            try {
-                repository.createItem(Item(name = name, description = description))
-                fetchItems()
-            } catch (e: Exception) {
-                _error.value = e.message
+            repository.getMarketplaceItem(itemId).collect { result ->
+                when (result) {
+                    is ResultState.Loading -> _uiState.update { it.copy(isLoading = true) }
+                    is ResultState.Success -> _uiState.update { it.copy(isLoading = false, item = result.data) }
+                    is ResultState.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+                }
             }
         }
     }
 
-    fun updateItem(id: String, name: String, description: String) {
+    fun deleteItem(itemId: String) {
         viewModelScope.launch {
-            try {
-                repository.updateItem(id, Item(id = id, name = name, description = description))
-                fetchItems()
-            } catch (e: Exception) {
-                _error.value = e.message
+            repository.deleteMarketplaceItem(itemId).collect { result ->
+                when (result) {
+                    is ResultState.Loading -> _uiState.update { it.copy(isLoading = true) }
+                    is ResultState.Success -> _uiState.update { it.copy(isLoading = false) }
+                    is ResultState.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+                }
             }
         }
     }
 
-    fun deleteItem(id: String) {
+    fun saveProduct(
+        itemId: String?,
+        titulo: String,
+        descripcion: String,
+        precio: String,
+        categoria: String,
+        onSuccess: () -> Unit
+    ) {
+        val precioDouble = precio.replace(",", ".").toDoubleOrNull() ?: 0.0
+        val product = MarketplaceItem(
+            itemId = itemId ?: "",
+            titulo = titulo,
+            descripcion = descripcion,
+            precio = precioDouble,
+            categoria = categoria
+        )
+
         viewModelScope.launch {
-            try {
-                repository.deleteItem(id)
-                fetchItems()
-            } catch (e: Exception) {
-                _error.value = e.message
+            repository.saveMarketplaceItem(product).collect { result ->
+                when (result) {
+                    is ResultState.Loading -> _uiState.update { it.copy(isLoading = true) }
+                    is ResultState.Success -> {
+                        _uiState.update { it.copy(isLoading = false, isSaved = true) }
+                        onSuccess()
+                    }
+                    is ResultState.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+                }
             }
         }
     }

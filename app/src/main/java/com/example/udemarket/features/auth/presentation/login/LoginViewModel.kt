@@ -16,13 +16,15 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChanged(email: String) {
-        val isError = email.isNotEmpty() && !email.endsWith("@misena.edu.co")
+        val trimmedEmail = email.trim()
+        val isError = email.isNotEmpty() && !trimmedEmail.endsWith("@misena.edu.co")
         _uiState.update {
             it.copy(
                 email = email,
                 isEmailError = isError,
-                emailErrorMessage = if (isError) "Acceso restringido únicamente para aprendices SENA con correo @misena.edu.co" else null,
-                isLoginEnabled = validateForm(email, it.password)
+                emailErrorMessage = if (isError) "Usa tu correo @misena.edu.co" else null,
+                isLoginEnabled = validateForm(email, it.password),
+                errorMessage = null
             )
         }
     }
@@ -31,7 +33,8 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
         _uiState.update {
             it.copy(
                 password = password,
-                isLoginEnabled = validateForm(it.email, password)
+                isLoginEnabled = validateForm(it.email, password),
+                errorMessage = null
             )
         }
     }
@@ -43,23 +46,30 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
     }
 
     private fun validateForm(email: String, password: String): Boolean {
-        return email.endsWith("@misena.edu.co") && password.length >= 6
+        return email.trim().endsWith("@misena.edu.co") && password.length >= 6
     }
 
     fun login(onSuccess: () -> Unit) {
+        val cleanEmail = _uiState.value.email.trim().lowercase()
         viewModelScope.launch {
-            repository.signIn(_uiState.value.email, _uiState.value.password).collect { result ->
+            repository.signIn(cleanEmail, _uiState.value.password).collect { result ->
                 when (result) {
                     is ResultState.Loading -> {
-                        _uiState.update { it.copy(isLoading = true) }
+                        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
                     }
                     is ResultState.Success -> {
                         _uiState.update { it.copy(isLoading = false) }
                         onSuccess()
                     }
                     is ResultState.Error -> {
-                        _uiState.update { it.copy(isLoading = false) }
-                        // Podrías agregar un campo de error general en UiState si deseas
+                        val friendlyMessage = when {
+                            result.message.contains("INVALID_LOGIN_CREDENTIALS") || 
+                            result.message.contains("invalid-credential") ||
+                            result.message.contains("user-not-found") -> "Correo o contraseña incorrectos"
+                            result.message.contains("network-request-failed") -> "Sin conexión a internet"
+                            else -> "Error de acceso. Intenta de nuevo."
+                        }
+                        _uiState.update { it.copy(isLoading = false, errorMessage = friendlyMessage) }
                     }
                 }
             }

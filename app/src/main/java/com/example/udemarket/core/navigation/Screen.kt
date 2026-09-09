@@ -7,6 +7,7 @@ sealed class Screen(val route: String) {
     object MarketplaceItems : Screen("marketplace_items")
     object ChatInbox : Screen("chat_inbox")
     object Profile : Screen("profile")
+    object Gastos : Screen("gastos")
 
     // Ruta para crear/editar con parámetro opcional de ID
     object ItemUpsert : Screen("item_upsert/{itemId}") {
