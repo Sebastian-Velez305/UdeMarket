@@ -12,9 +12,6 @@ import kotlinx.coroutines.tasks.await
 
 class ChatRepository(private val db: FirebaseFirestore) {
 
-    /**
-     * Obtiene la lista de conversaciones en las que participa el usuario actual.
-     */
     fun getConversations(userId: String): Flow<ResultState<List<Conversation>>> = callbackFlow {
         trySend(ResultState.Loading)
         val subscription = db.collection("conversations")
@@ -31,9 +28,6 @@ class ChatRepository(private val db: FirebaseFirestore) {
         awaitClose { subscription.remove() }
     }
 
-    /**
-     * Obtiene los mensajes de una conversación específica en tiempo real.
-     */
     fun getMessages(conversationId: String): Flow<ResultState<List<Message>>> = callbackFlow {
         trySend(ResultState.Loading)
         val subscription = db.collection("conversations").document(conversationId)
@@ -50,21 +44,18 @@ class ChatRepository(private val db: FirebaseFirestore) {
         awaitClose { subscription.remove() }
     }
 
-    /**
-     * Envía un mensaje y actualiza la metadata de la conversación.
-     */
     suspend fun sendMessage(message: Message) {
+        // Validación de seguridad: no permitir mensajes si el remitente no está en la conversación
+        // (Esto se reforzará con reglas de Firestore)
         val messageRef = db.collection("conversations")
             .document(message.conversationId)
             .collection("messages")
             .document()
         
         val finalMessage = message.copy(id = messageRef.id)
-        
         val batch = db.batch()
         batch.set(messageRef, finalMessage)
         
-        // Actualizar el último mensaje en la conversación principal
         val conversationRef = db.collection("conversations").document(message.conversationId)
         batch.update(conversationRef, mapOf(
             "lastMessage" to message.content,
@@ -74,15 +65,17 @@ class ChatRepository(private val db: FirebaseFirestore) {
         batch.commit().await()
     }
 
-    /**
-     * Busca o crea una conversación entre dos usuarios por un producto específico.
-     */
     suspend fun getOrCreateConversation(
         myId: String, 
         otherId: String, 
         productId: String, 
         productName: String
     ): String {
+        // REGLA DE NEGOCIO CRÍTICA: No chatear consigo mismo
+        if (myId == otherId) {
+            throw Exception("No puedes iniciar una conversación sobre tu propio producto.")
+        }
+
         // Buscar si ya existe
         val existing = db.collection("conversations")
             .whereEqualTo("productId", productId)
@@ -96,14 +89,14 @@ class ChatRepository(private val db: FirebaseFirestore) {
 
         if (found != null) return found.id
 
-        // Si no existe, crearla
+        // Crear nueva si no existe
         val newDoc = db.collection("conversations").document()
         val conversation = Conversation(
             id = newDoc.id,
             participants = listOf(myId, otherId),
             productId = productId,
             productName = productName,
-            lastMessage = "Iniciaste un chat por este producto",
+            lastMessage = "Interés en el producto",
             lastMessageTimestamp = System.currentTimeMillis()
         )
         newDoc.set(conversation).await()

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.udemarket.core.ResultState
 import com.example.udemarket.data.repository.AuthRepository
 import com.example.udemarket.data.repository.ChatRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,14 +20,19 @@ class ChatInboxViewModel(
     private val _uiState = MutableStateFlow(ChatInboxUiState())
     val uiState: StateFlow<ChatInboxUiState> = _uiState.asStateFlow()
 
+    private var fetchJob: Job? = null
+
     init {
         loadConversations()
     }
 
-    private fun loadConversations() {
+    fun loadConversations() {
         val currentUserId = authRepository.getCurrentUserUid() ?: return
         
-        viewModelScope.launch {
+        // Cancelamos el trabajo anterior si existe para evitar duplicados
+        fetchJob?.cancel()
+        
+        fetchJob = viewModelScope.launch {
             chatRepository.getConversations(currentUserId).collect { result ->
                 when (result) {
                     is ResultState.Loading -> {

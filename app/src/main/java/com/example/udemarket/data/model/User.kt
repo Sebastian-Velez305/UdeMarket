@@ -5,5 +5,6 @@ data class User(
     val nombre: String = "",
     val email: String = "",
     val carrera: String = "",
-    val reputacion: Double = 5.0
+    val reputacion: Double = 5.0,
+    val role: String = "USER" // Roles: USER, ADMIN
 )

@@ -113,7 +113,9 @@ fun UdeMarketApp(
                             onClick = {
                                 if (currentRoute != screen.route) {
                                     navController.navigate(screen.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
                                         launchSingleTop = true
                                         restoreState = true
                                     }
@@ -151,19 +153,23 @@ fun UdeMarketApp(
             
             composable(Screen.MarketplaceItems.route) {
                 MarketplaceScreenContainer(
-                    viewModel = viewModel(factory = createFactory { MarketplaceViewModel(marketplaceRepository) }),
+                    viewModel = viewModel(factory = createFactory { MarketplaceViewModel(marketplaceRepository, authRepository) }),
                     currentUserId = currentUserId,
                     onEditClick = { id -> navController.navigate(Screen.ItemUpsert.createRoute(id)) },
                     onContactClick = { product ->
-                        // Lógica para crear/abrir chat y navegar
                         scope.launch {
-                            val conversationId = chatRepository.getOrCreateConversation(
-                                myId = currentUserId,
-                                otherId = product.sellerId,
-                                productId = product.id,
-                                productName = product.name
-                            )
-                            navController.navigate(Screen.ChatDetail.createRoute(conversationId))
+                            try {
+                                val conversationId = chatRepository.getOrCreateConversation(
+                                    myId = currentUserId,
+                                    otherId = product.sellerId,
+                                    productId = product.id,
+                                    productName = product.name
+                                )
+                                navController.navigate(Screen.ChatDetail.createRoute(conversationId))
+                            } catch (e: Exception) {
+                                // Fallback o mensaje si intenta contactarse a sí mismo
+                                // La lógica del repositorio ya bloquea esto lanzando una excepción
+                            }
                         }
                     },
                     onAddProductClick = { navController.navigate(Screen.ItemUpsert.createRoute(null)) }

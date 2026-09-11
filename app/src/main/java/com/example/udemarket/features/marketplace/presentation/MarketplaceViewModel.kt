@@ -3,6 +3,7 @@ package com.example.udemarket.features.marketplace.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.udemarket.core.ResultState
+import com.example.udemarket.data.repository.AuthRepository
 import com.example.udemarket.data.repository.MarketplaceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,12 +12,27 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-class MarketplaceViewModel(private val repository: MarketplaceRepository) : ViewModel() {
+class MarketplaceViewModel(
+    private val repository: MarketplaceRepository,
+    private val authRepository: AuthRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(MarketplaceUiState())
     val uiState: StateFlow<MarketplaceUiState> = _uiState.asStateFlow()
 
     init {
+        loadUserRole()
         loadProducts()
+    }
+
+    private fun loadUserRole() {
+        val uid = authRepository.getCurrentUserUid() ?: return
+        viewModelScope.launch {
+            authRepository.getUserData(uid).collect { result ->
+                if (result is ResultState.Success) {
+                    _uiState.update { it.copy(userRole = result.data.role) }
+                }
+            }
+        }
     }
 
     private fun loadProducts() {

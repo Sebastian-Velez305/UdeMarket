@@ -1,7 +1,5 @@
 package com.example.udemarket.features.marketplace.presentation
 
-import com.example.udemarket.data.model.MarketplaceItem
-
 data class Product(
     val id: String = "",
     val name: String = "",
@@ -17,5 +15,6 @@ data class MarketplaceUiState(
     val categories: List<String> = listOf("Todo", "Tecnología", "Ropa", "Libros", "Otros"),
     val selectedCategory: String = "Todo",
     val isLoading: Boolean = false,
+    val userRole: String = "USER", // Nuevo: USER o ADMIN
     val errorMessage: String? = null
 )

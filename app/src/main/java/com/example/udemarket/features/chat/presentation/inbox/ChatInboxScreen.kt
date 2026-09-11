@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -68,40 +70,54 @@ fun ChatInboxScreen(
                 .padding(paddingValues)
         ) {
             when {
-                uiState.isLoading -> {
+                // ESTADO: CARGANDO
+                uiState.isLoading && uiState.conversations.isEmpty() -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
                         color = neonPurple
                     )
                 }
+                
+                // ESTADO: ERROR (Limpio y con botón de reintento)
                 uiState.errorMessage != null -> {
-                    // Manejo amigable del error de índice en Firebase (FAILED_PRECONDITION)
-                    Column(
-                        modifier = Modifier.align(Alignment.Center).padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Configurando el servidor de chats...",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Por favor, espera unos minutos mientras se activa el servicio y reinicia la app.",
-                            color = Color.White.copy(alpha = 0.6f),
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center
-                        )
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(32.dp)
+                        ) {
+                            Text(
+                                "No se pudieron cargar los chats",
+                                color = Color.White.copy(alpha = 0.6f),
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { viewModel.loadConversations() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = neonPurple,
+                                    contentColor = Color.Black
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("REINTENTAR", fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
+
+                // ESTADO: VACÍO
                 uiState.conversations.isEmpty() -> {
-                    EmptyInboxState()
+                    EmptyInboxView()
                 }
+
+                // ESTADO: ÉXITO (LISTA DE CHATS)
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
                     ) {
                         items(uiState.conversations, key = { it.id }) { conversation ->
                             ConversationItem(
@@ -134,24 +150,24 @@ fun ConversationItem(
         leadingContent = {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(52.dp)
                     .clip(CircleShape)
                     .background(neonPurple.copy(alpha = 0.1f))
-                    .border(1.dp, neonPurple.copy(alpha = 0.3f), CircleShape),
+                    .border(1.dp, neonPurple.copy(alpha = 0.4f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = conversation.productName?.take(1) ?: "?",
+                    text = conversation.productName?.take(1)?.uppercase() ?: "?",
                     style = MaterialTheme.typography.titleLarge.copy(
                         color = neonPurple,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Black
                     )
                 )
             }
         },
         headlineContent = {
             Text(
-                text = conversation.productName ?: "Conversación",
+                text = conversation.productName ?: "Chat de Producto",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -178,7 +194,7 @@ fun ConversationItem(
 }
 
 @Composable
-fun EmptyInboxState() {
+fun EmptyInboxView() {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -192,7 +208,7 @@ fun EmptyInboxState() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "No tienes conversaciones todavía",
+            "Tu bandeja está vacía",
             color = Color.White.copy(alpha = 0.5f),
             style = MaterialTheme.typography.bodyLarge
         )

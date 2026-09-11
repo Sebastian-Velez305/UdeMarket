@@ -28,7 +28,8 @@ class AuthRepositoryImpl(
         auth.createUserWithEmailAndPassword(cleanEmail, password)
             .addOnSuccessListener { result ->
                 val uid = result.user?.uid ?: ""
-                val newUser = user.copy(uid = uid, email = cleanEmail)
+                // Forzamos el rol USER por seguridad en el registro
+                val newUser = user.copy(uid = uid, email = cleanEmail, role = "USER")
                 val newProfile = Profile(userId = uid, phoneNumber = phoneNumber)
                 
                 val batch = db.batch()
@@ -104,9 +105,15 @@ class AuthRepositoryImpl(
 
     override fun updateUserData(user: User): Flow<ResultState<Unit>> = callbackFlow {
         trySend(ResultState.Loading)
-        db.collection("users").document(user.uid).set(user)
-            .addOnSuccessListener { trySend(ResultState.Success(Unit)); close() }
-            .addOnFailureListener { e -> trySend(ResultState.Error(e.localizedMessage ?: "Error")); close() }
+        // Evitamos que el usuario pueda cambiar su propio rol mediante esta función
+        db.collection("users").document(user.uid).get().addOnSuccessListener { doc ->
+            val currentRole = doc.getString("role") ?: "USER"
+            val safeUser = user.copy(role = currentRole)
+            
+            db.collection("users").document(user.uid).set(safeUser)
+                .addOnSuccessListener { trySend(ResultState.Success(Unit)); close() }
+                .addOnFailureListener { e -> trySend(ResultState.Error(e.localizedMessage ?: "Error")); close() }
+        }
         awaitClose()
     }
 
