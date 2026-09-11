@@ -30,10 +30,11 @@ class MarketplaceViewModel(private val repository: MarketplaceRepository) : View
                     is ResultState.Success -> {
                         val products = result.data.map { item ->
                             Product(
-                                id = item.itemId.hashCode(),
+                                id = item.itemId,
                                 name = item.titulo,
                                 price = "$${String.format(Locale.getDefault(), "%,.0f", item.precio)}",
                                 category = item.categoria,
+                                sellerId = item.vendedorId,
                                 sellerName = "Vendedor UdeMarket", 
                                 imageUrl = item.fotoUrl
                             )
@@ -50,6 +51,5 @@ class MarketplaceViewModel(private val repository: MarketplaceRepository) : View
 
     fun onCategorySelected(category: String) {
         _uiState.update { it.copy(selectedCategory = category) }
-        // Aquí se podría filtrar la lista de productos por categoría en el futuro
     }
 }

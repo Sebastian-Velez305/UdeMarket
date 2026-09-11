@@ -23,8 +23,8 @@ import java.text.NumberFormat
 import java.util.Locale
 
 /**
- * 1. MODELO DE DATOS
- * Definición simple del objeto de dominio para gastos.
+ * MODELO DE DATOS: Gasto
+ * Se utiliza una data class inmutable para representar cada registro.
  */
 data class Gasto(
     val id: Int,
@@ -35,16 +35,15 @@ data class Gasto(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GastosScreen() {
-    // --- ESTADO LOCAL REACTIVO ---
-    // mutableStateListOf es la forma Senior de manejar listas dinámicas en Compose,
-    // ya que notifica cambios individuales (añadir/eliminar) sin reasignar toda la lista.
+    // --- ESTADO LOCAL (REACTIVE STATE) ---
+    // mutableStateListOf permite que Compose rastree cambios en la lista (add/remove) de forma eficiente.
     val listaGastos = remember { mutableStateListOf<Gasto>() }
     
-    // Estados para los campos de entrada de datos
+    // Estados para el manejo de los campos de texto
     var conceptoText by remember { mutableStateOf("") }
     var montoText by remember { mutableStateOf("") }
     
-    // Cálculo derivado: se actualiza automáticamente cada vez que muta la lista.
+    // Cálculo derivado: el total se recalcula automáticamente cada vez que la lista muta.
     val totalGastado = listaGastos.sumOf { it.monto }
 
     Scaffold(
@@ -52,8 +51,8 @@ fun GastosScreen() {
             CenterAlignedTopAppBar(
                 title = { 
                     Text(
-                        "PRESUPUESTO SENA", 
-                        style = MaterialTheme.typography.titleLarge.copy(
+                        "GESTIÓN DE PRESUPUESTO",
+                        style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.sp
                         )
@@ -73,7 +72,7 @@ fun GastosScreen() {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- SECCIÓN DE ENTRADA (FORMULARIO) ---
+            // --- BLOQUE DE ENTRADA (FORMULARIO) ---
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -88,8 +87,8 @@ fun GastosScreen() {
                     OutlinedTextField(
                         value = conceptoText,
                         onValueChange = { conceptoText = it },
-                        label = { Text("¿En qué gastaste?") },
-                        placeholder = { Text("Ej. Fotocopias, Almuerzo") },
+                        label = { Text("Concepto del gasto") },
+                        placeholder = { Text("Ej. Almuerzo, Fotocopias") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         singleLine = true
@@ -108,7 +107,7 @@ fun GastosScreen() {
                     Button(
                         onClick = {
                             val montoVal = montoText.toDoubleOrNull() ?: 0.0
-                            // VALIDACIÓN: Evitamos entradas vacías o valores inválidos.
+                            // VALIDACIÓN: Se requiere concepto y un monto positivo.
                             if (conceptoText.isNotBlank() && montoVal > 0) {
                                 val nuevoGasto = Gasto(
                                     id = (listaGastos.maxOfOrNull { it.id } ?: 0) + 1,
@@ -126,51 +125,47 @@ fun GastosScreen() {
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("AGREGAR GASTO", fontWeight = FontWeight.Bold)
+                        Text("AGREGAR AL DÍA", fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- LISTA DE GASTOS (HISTORIAL) ---
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    "DETALLE DEL DÍA",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    "${listaGastos.size} registros",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.Gray
-                )
-            }
+            // --- LISTADO DE GASTOS (LazyColumn) ---
+            Text(
+                "HISTORIAL DE GASTOS",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                fontWeight = FontWeight.Bold
+            )
 
-            LazyColumn(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(listaGastos, key = { it.id }) { gasto ->
-                    GastoItemRow(
-                        gasto = gasto,
-                        onDelete = { listaGastos.remove(gasto) }
-                    )
+            if (listaGastos.isEmpty()) {
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text("No hay gastos registrados hoy", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(listaGastos, key = { it.id }) { gasto ->
+                        GastoItemRow(
+                            gasto = gasto,
+                            onDelete = { listaGastos.remove(gasto) }
+                        )
+                    }
                 }
             }
 
-            // --- SECCIÓN DE TOTALES Y ACCIONES GLOBALES ---
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+            // --- SECCIÓN DE TOTALES ---
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
             
             Surface(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(20.dp)
             ) {
                 Row(
@@ -179,7 +174,7 @@ fun GastosScreen() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("TOTAL ACUMULADO", style = MaterialTheme.typography.labelSmall)
+                        Text("TOTAL GASTADO", style = MaterialTheme.typography.labelSmall)
                         Text(
                             formatToCurrency(totalGastado),
                             style = MaterialTheme.typography.headlineMedium.copy(
@@ -192,7 +187,7 @@ fun GastosScreen() {
                     IconButton(
                         onClick = { listaGastos.clear() },
                         colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
                             contentColor = MaterialTheme.colorScheme.error
                         ),
                         modifier = Modifier.size(48.dp)
@@ -219,20 +214,15 @@ fun GastoItemRow(gasto: Gasto, onDelete: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(10.dp)),
+                    .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(10.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Default.Payments, 
-                    contentDescription = null, 
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(Icons.Default.Payments, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
             }
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(gasto.concepto, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                Text(formatToCurrency(gasto.monto), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(formatToCurrency(gasto.monto), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f))
@@ -242,8 +232,7 @@ fun GastoItemRow(gasto: Gasto, onDelete: () -> Unit) {
 }
 
 /**
- * FORMATEO DE MONEDA: Utiliza la configuración local para asegurar que los pesos colombianos
- * se muestren correctamente ($ 2.500,00).
+ * FORMATEO DE MONEDA: Técnica Senior para asegurar consistencia regional ($ CO).
  */
 private fun formatToCurrency(amount: Double): String {
     val format = NumberFormat.getCurrencyInstance(Locale("es", "CO"))

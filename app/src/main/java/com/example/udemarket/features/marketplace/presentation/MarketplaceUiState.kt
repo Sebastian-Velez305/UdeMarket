@@ -1,10 +1,13 @@
 package com.example.udemarket.features.marketplace.presentation
 
+import com.example.udemarket.data.model.MarketplaceItem
+
 data class Product(
-    val id: Int = 0,
+    val id: String = "",
     val name: String = "",
     val price: String = "",
     val category: String = "",
+    val sellerId: String = "",
     val sellerName: String = "",
     val imageUrl: String? = null
 )

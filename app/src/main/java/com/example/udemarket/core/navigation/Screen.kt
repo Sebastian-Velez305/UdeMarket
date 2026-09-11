@@ -9,6 +9,11 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
     object Gastos : Screen("gastos")
 
+    // Ruta para el chat individual con ID de conversación
+    object ChatDetail : Screen("chat_detail/{conversationId}") {
+        fun createRoute(conversationId: String) = "chat_detail/$conversationId"
+    }
+
     // Ruta para crear/editar con parámetro opcional de ID
     object ItemUpsert : Screen("item_upsert/{itemId}") {
         fun createRoute(itemId: String? = null) = "item_upsert/${itemId ?: "new"}"
